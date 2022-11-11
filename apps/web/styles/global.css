@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+* {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.app {
+    width: 100vw;
+    min-height: 100vh;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* p-tag */
+.de-p {
+    font-size: 1rem;
+    font-weight: 400;
+    color: #000;
+    line-height: 1.5;
+}
+
+/* h1-tag */
+.de-h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #000;
+    line-height: 1.5;
+}
+
+/* h2-tag */
+.de-h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #000;
+    line-height: 1.5;
+}
+
+/* global for all blocks */
+.de {
+    padding: 0.25rem 1rem;
+}
+
+.de-ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.de-li::before {
+    content: "•";
+    width: 0.75rem;
+    margin-right: 0.5rem;
+    flex-grow: 0;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.de-li {
+    align-items: flex-start;
+    flex-grow: 1;
+}
+
+.de-checklist{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.de-code-sandbox {
+    margin-top: 24px;
+}
+
+.de-code-sandbox-iframe{
+    width: 100%;
+    height: 500px;
+    border: 0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.de-img{
+    width: 100%;
+    height: auto;
+    margin-top: 24px;
+}

@@ -1,10 +1,15 @@
-import { Button } from "ui";
+import dynamic from "next/dynamic";
+
+const Editor = dynamic(() => {
+  return import("@dimension/editor")
+}, {
+  ssr: false
+})
 
 export default function Web() {
   return (
-    <div>
-      <h1>Web</h1>
-      <Button />
+    <div className="app">
+      <Editor />
     </div>
   );
 }
