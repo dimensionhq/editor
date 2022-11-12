@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import "./popover.css";
 
 * {
     font-family: 'Inter', sans-serif;
@@ -93,4 +94,33 @@
 .de-block{
     display: flex;
     gap: 2px;
+}
+
+/* popover for both the slash key and the add button */
+.de-add-control-popover{
+    width: 150px;
+    height: auto;
+}
+
+.de-add-control-popover .item{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 12px;
+}
+
+.de-add-control-popover .item:hover{
+    background-color: #f2f2f2;
+}
+
+.de-add-control-popover .section{
+    padding: 8px;
+    font-weight: 600;
+    font-size: medium;
+}
+.de-add-control-popover .separator {
+    border-top: 1px solid #e2e2e2;
+    margin: 8px 0;
 }

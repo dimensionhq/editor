@@ -8,6 +8,7 @@
         "typescript": "^3.7.2"
     },
     "dependencies": {
+        "@radix-ui/react-popover": "^1.0.2",
         "mobx": "^6.6.2",
         "mobx-react": "^7.5.3",
         "nanoid": "^4.0.0",
@@ -15,6 +16,7 @@
         "react-beautiful-dnd": "^13.1.1",
         "slate": "^0.85.0",
         "slate-history": "^0.85.0",
-        "slate-react": "^0.83.2"
+        "slate-react": "^0.83.2",
+        "tabler-icons": "^1.35.0"
     }
 }
