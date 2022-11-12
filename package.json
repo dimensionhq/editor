@@ -10,7 +10,9 @@
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    
+    "editor": "pnpm --filter @dimension/editor"
   },
   "devDependencies": {
     "eslint-config-custom": "workspace:*",

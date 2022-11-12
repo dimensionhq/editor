@@ -1,11 +1,14 @@
-import { useCallback, useState } from "react";
-import { createEditor } from "slate";
-import { withReact, Slate, Editable, RenderElementProps } from "slate-react";
+import { useCallback, useContext, useEffect, useState } from "react";
+import { createEditor, Editor, Transforms } from "slate";
+import { withReact, Slate, Editable, RenderElementProps, ReactEditor } from "slate-react";
 import Block from "./blocks";
 import { BlockType, CustomElement } from "./types";
 import { nanoid } from "nanoid";
+import { DragDropContext, Droppable, DropResult, ResponderProvided } from "react-beautiful-dnd";
+import DraggableElement from "./components/draggable-element";
+import EditorContext from "./ctx";
 
-const initialValue: CustomElement[] = [
+export let initialValue: CustomElement[] = [
     {
         id: nanoid(),
         type: BlockType.Paragraph,
@@ -103,65 +106,83 @@ const initialValue: CustomElement[] = [
         checked: false,
         children: [{ text: "Brand Custom" }],
     },
-    {
-        id: nanoid(),
-        type: BlockType.CodeSandbox,
-        children: [{ text: "" }],
-        url: "https://codesandbox.io/embed/nextjs-fxis37?file=%2FREADME.md",
-    },
-    {
-        id: nanoid(),
-        type: BlockType.Image,
-        children: [{ text: "" }],
-        alt: "Image",
-        url: "https://cdn.britannica.com/74/114874-050-6E04C88C/North-Face-Mount-Everest-Tibet-Autonomous-Region.jpg"
-    },
-    {
-        id: nanoid(),
-        type: BlockType.Video,
-        children: [{ text: "" }],
-        url: "https://www.youtube.com/embed/dQw4w9WgXcQ"
-    },
-    {
-        id: nanoid(),
-        type: BlockType.Figma,
-        children: [{ text: "" }],
-        url: "https://www.figma.com/embed?embed_host=astra&url=\
-        https://www.figma.com/file/BK6bZ0ZMhEAnQ93O1wBIej/Figma-Bootcamp-lpu-(Community)?node-id=0%3A1&t=MvQIMdpuEHpNenNC-1"
-    }
+
 ];
+
+function isNodeWithId(editor: Editor, id: string) {
+    return (node: Node) => Editor.isBlock(editor, node) && (node as any).id === id;
+}
 
 const App = () => {
     const [editor] = useState(() => withReact(createEditor()));
+    const [elements, setElements] = useState(initialValue);
 
     const renderElements = useCallback((props: RenderElementProps) => {
         let element = props.element as any;
+        const path = ReactEditor.findPath(editor, props.element);
+        const isTopLevel = path.length === 1;
 
+        if (isTopLevel) {
+            return (
+                <DraggableElement isTopElement={isTopLevel} element={props.element} type={(props.element as any).type}>
+                    {props.children}
+                </DraggableElement>
+            )
+        }
         return (
-            <Block element={element} type={element.type}>
+            <Block isTopElement={isTopLevel} element={element} type={element.type}>
                 {props.children}
             </Block>
         );
     }, []);
 
+    const onDragEnd = (result: DropResult, provided: ResponderProvided) => {
+        if (!result.destination) return;
+
+        Transforms.moveNodes(editor, {
+            at: [],
+            match: isNodeWithId(editor, result.draggableId) as any,
+            to: [result.destination.index],
+        })
+
+        // update elements state 
+        const newElements = Array.from(elements);
+        const [removed] = newElements.splice(result.source.index, 1);
+        newElements.splice(result.destination.index, 0, removed);
+        setElements(newElements);
+    }
+
     return (
-        <Slate editor={editor} value={initialValue}>
-            <Editable
-                style={{
-                    width: "75%",
-                }}
-                renderElement={renderElements}
-                onKeyDown={(event) => {
-                    if (event.key === "&") {
-                        // Prevent the ampersand character from being inserted.
-                        event.preventDefault();
-                        // Execute the `insertText` method when the event occurs.
-                        editor.insertText("and");
-                    }
-                }}
-            />
-        </Slate>
+        <EditorContext.Provider value={{ elements: elements, setElements: setElements, editor: editor }}>
+            <Slate editor={editor} value={initialValue}>
+                <DragDropContext onDragEnd={onDragEnd}>
+                    <Droppable droppableId="ROOT-DROPPABLE">
+                        {(provided) => (
+                            <div ref={provided.innerRef} {...provided.droppableProps}>
+                                <Editable
+                                    style={{
+                                        width: "75%",
+                                    }}
+                                    renderElement={renderElements}
+                                    onKeyDown={(event) => {
+                                        if (event.key === "&") {
+                                            // Prevent the ampersand character from being inserted.
+                                            event.preventDefault();
+                                            // Execute the `insertText` method when the event occurs.
+                                            editor.insertText("and");
+                                        }
+                                    }}
+                                />
+                                {provided.placeholder}
+                            </div>
+                        )}
+
+                    </Droppable>
+                </DragDropContext>
+            </Slate>
+        </EditorContext.Provider>
     );
 };
+
 
 export default App;

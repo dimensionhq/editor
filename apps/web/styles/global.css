@@ -89,3 +89,8 @@
     height: auto;
     margin-top: 24px;
 }
+
+.de-block{
+    display: flex;
+    gap: 2px;
+}

@@ -1,4 +1,5 @@
 import React from "react";
+import { DraggableProvidedDragHandleProps } from "react-beautiful-dnd";
 import CodeSandboxBlock from "../components/codesandbox";
 import FigmaBlock from "../components/figma";
 import ImageBlock from "../components/image";
@@ -6,13 +7,26 @@ import ListBlock from "../components/list";
 import TodoList from "../components/todo";
 import VideoBlock from "../components/video";
 import { BlockType } from "../types";
+import BlockControls from "./controls";
 
 interface Props {
     children: React.ReactNode,
     type: BlockType,
     element: any,
+    isTopElement: boolean,
+    dragHandleProps?: DraggableProvidedDragHandleProps,
 }
 
+const BlockWrapper = (props: Props) => {
+    return (
+        <div className="de-block">
+            <div style={{ userSelect: "none" }}>
+                <BlockControls element={props.element} dragHandleProps={props.dragHandleProps} />
+            </div>
+            <Block {...props} />
+        </div>
+    )
+}
 const Block = (props: Props) => {
     switch (props.type) {
         case BlockType.Paragraph:
@@ -40,4 +54,4 @@ const Block = (props: Props) => {
     }
 }
 
-export default Block;
+export default BlockWrapper;
