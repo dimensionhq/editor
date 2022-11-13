@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { DraggableProvidedDragHandleProps } from "react-beautiful-dnd";
 import CodeSandboxBlock from "../components/codesandbox";
 import FigmaBlock from "../components/figma";
@@ -18,8 +18,19 @@ interface Props {
 }
 
 const BlockWrapper = (props: Props) => {
+    const [selected, setSelected] = React.useState(false);
+    const ref = React.useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const onSelect = (e: any) => {
+            console.log(e)
+            setSelected(e.selected)
+        }
+        ref.current?.addEventListener('selectable-select', onSelect)
+    }, [])
+
     return (
-        <div className="de-block">
+        <div ref={ref} className="de-block" id={`${props.element.id}`} data-selected={selected} data-block={true}>
             <div style={{ userSelect: "none" }}>
                 <BlockControls element={props.element} dragHandleProps={props.dragHandleProps} />
             </div>

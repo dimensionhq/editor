@@ -1,3 +1,6 @@
+import { nanoid } from "nanoid";
+
+
 export enum BlockType {
     H1 = "h1",
     H2 = "h2",
@@ -88,4 +91,13 @@ export type CustomText = {
 
 type LeafDecoration = {
     placeholder?: string;
+};
+
+
+export const CreateNewBlockFromBlock: Record<
+string,
+() => CustomElement
+> = {
+[BlockType.CheckList]: () => ({ type: BlockType.CheckList, checked: false, id: nanoid(), children: [] }),
+[BlockType.BulletedList]: () => ({ type: BlockType.BulletedList, id: nanoid(), children: [] }),
 };
