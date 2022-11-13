@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { createEditor, Editor, Range, Transforms } from "slate";
+import { createEditor, Descendant, Editor, Range, Transforms } from "slate";
 import { withReact, Slate, Editable, RenderElementProps, ReactEditor } from "slate-react";
 import Block from "./blocks";
 import { BlockType, CreateNewBlockFromBlock, CustomElement } from "./types";
@@ -8,121 +8,23 @@ import { DragDropContext, Droppable, DropResult, ResponderProvided } from "react
 import EditorContext from "./ctx";
 import DraggableElement from "./components/draggable-element";
 // @ts-ignore
-import RectangleSelection from "react-rectangle-selection"
 import withShortcuts, { HOTKEYS, toggleMark } from "./utils/withShortcuts";
 import isHotkey from "is-hotkey";
 import Leaf from "./components/leaf";
+import BoxSelection from "./utils/box-selection"
 
-export let initialValue: CustomElement[] = [
-    {
-        id: nanoid(),
-        type: BlockType.Paragraph,
-        children: [
-            {
-                text: "Magic gives developers the tools to make adoption frictionless, secure, and non-custodial.",
-            },
-        ],
-    },
-    {
-        id: nanoid(),
-        type: BlockType.H1,
-        children: [
-            {
-                text: "Instant Web3 wallets for your customers",
-            },
-        ],
-    },
-    {
-        id: nanoid(),
-        type: BlockType.H2,
-        children: [
-            {
-                text: "Supercharge conversion",
-            },
-        ],
-    },
-    {
-        id: nanoid(),
-        type: BlockType.BulletedList,
-        children: [
-            {
-                text: "Instant onboarding",
-            },
-        ],
-    },
-    {
-        id: nanoid(),
-        type: BlockType.BulletedList,
-        children: [
-            {
-                text: "No friction",
-            },
-        ],
-    },
-    {
-        id: nanoid(),
-        type: BlockType.CheckList,
-        checked: false,
-        children: [
-            {
-                text: "No friction",
-            },
-        ],
-    },
-    {
-        id: nanoid(),
-        type: BlockType.CheckList,
-        checked: false,
-        children: [{ text: "Signup & Login Form" }],
-    },
-    {
-        id: nanoid(),
-        type: BlockType.CheckList,
-        checked: false,
-        children: [{ text: "Wallet Selector" }],
-    },
-    {
-        id: nanoid(),
-        type: BlockType.CheckList,
-        checked: false,
-        children: [{ text: "Email Collection" }],
-    },
-    {
-        id: nanoid(),
-        type: BlockType.CheckList,
-        checked: false,
-        children: [{ text: "Transaction Signing" }],
-    },
-    {
-        id: nanoid(),
-        type: BlockType.CheckList,
-        checked: false,
-        children: [{ text: "Fiat On-Ramp" }],
-    },
-    {
-        id: nanoid(),
-        type: BlockType.CheckList,
-        checked: false,
-        children: [{ text: "Asset Management" }],
-    },
-    {
-        id: nanoid(),
-        type: BlockType.CheckList,
-        checked: false,
-        children: [{ text: "Brand Custom" }],
-    },
-];
-
-
+interface Props {
+    onChange?: ((value: Descendant[]) => void) | undefined
+    initialValue: CustomElement[]
+}
 
 function isNodeWithId(editor: Editor, id: string) {
     return (node: Node) => Editor.isBlock(editor, node) && (node as any).id === id;
 }
 
-const App = () => {
+const App = (props: Props) => {
     const [editor] = useState(() => withShortcuts(withReact(createEditor())));
-    const [elements, setElements] = useState(initialValue);
-    const [selected, setSelected] = useState<string[]>([]);
+    const [elements, setElements] = useState(props.initialValue);
     const ref = React.useRef<HTMLDivElement>(null);
 
     const renderElements = useCallback((props: RenderElementProps) => {
@@ -212,96 +114,89 @@ const App = () => {
     }, [editor]);
 
     useEffect(() => {
-        let blocks = document.querySelectorAll(`[data-block="true"]`)
-        // remove data-selected={selected} if not in selected array
-        blocks.forEach(block => {
-            if (!selected.includes(block.id)) {
-                block.removeAttribute('data-selected')
-            } else {
-                block.setAttribute('data-selected', 'true')
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Backspace" || event.key === "Delete") {
+                const selected_nodes = document.getElementsByClassName("de-selected")
+                // loop through selected nodes and remove them
+                for (let i = 0; i < selected_nodes.length; i++) {
+                    const node = selected_nodes[i];
+                    const id = node.getAttribute("data-id");
+                    if (id) {
+                        Transforms.removeNodes(editor, { at: [], match: isNodeWithId(editor, id) as any });
+                        setElements(elements.filter((element) => element.id !== id));
+                    }
+                }
             }
-        });
-    }, [selected])
+        }
+        document.addEventListener("keydown", onKeyDown);
+        return () => {
+            document.removeEventListener("keydown", onKeyDown);
+        }
+    }, [])
+
+    useEffect(() => {
+        const instance = new BoxSelection({
+            container: document.getElementById('de-container'),
+            itemSelector: '.de-itemSelector',
+            selectedClass: '.de-selected',
+            selectionClass: '.de-selection',
+            mode: 'loose',
+            onSelectionChange: () => { }
+        })
+
+        return () => {
+            instance.unbind()
+        }
+    }, [])
+
 
     return (
         <div ref={ref} style={{ width: "100%", height: "100%", position: "relative" }}>
-            {/* <RectangleSelection
-                onSelect={(e: any, coords: any) => {
-                    let coordsOrigin = coords.origin;
-                    let coordsFinal = coords.target;
+            <div id="de-container">
+                <EditorContext.Provider value={{ elements: elements, setElements: setElements, editor: editor }}>
+                    <Slate onChange={props.onChange} editor={editor} value={props.initialValue}>
+                        <DragDropContext onDragEnd={onDragEnd}>
+                            <Droppable droppableId="ROOT-DROPPABLE">
+                                {(provided) => (
+                                    <div ref={provided.innerRef} {...provided.droppableProps}>
+                                        <Editable
+                                            renderLeaf={Leaf}
+                                            style={{
+                                                width: "75%",
+                                            }}
+                                            renderElement={renderElements}
+                                            onKeyDown={(event) => {
+                                                for (const hotkey in HOTKEYS) {
+                                                    if (
+                                                        isHotkey(hotkey, event as any) &&
+                                                        editor.selection
+                                                    ) {
+                                                        event.preventDefault();
+                                                        const mark = HOTKEYS[hotkey];
+                                                        toggleMark(editor, mark);
+                                                    }
 
-                    const top = Math.min(coordsOrigin[1], coordsFinal[1]);
-                    const left = Math.min(coordsOrigin[0], coordsFinal[0]);
-                    const width = Math.abs(coordsOrigin[0] - coordsFinal[0]);
-                    const height = Math.abs(coordsOrigin[1] - coordsFinal[1]);
+                                                    // check if slash is pressed and caret is at position 0
+                                                    if (event.key === "/" && editor.selection && editor.selection.anchor.offset === 0) {
+                                                        event.preventDefault();
+                                                        const block = editor.children[
+                                                            editor.selection.anchor.path[0]
+                                                        ] as CustomElement;
 
-                    const finalCoords = { top, left, width, height };
-
-                    // check if any block is in selection
-                    let blocks = document.querySelectorAll(`[data-block="true"]`)
-                    let selectedBlocks: string[] = [];
-                    blocks.forEach(block => {
-                        // check if block and finalCoords collide
-                        let blockRect = block.getBoundingClientRect();
-
-                        // check if block is in selection
-                        if (blockRect.top >= finalCoords.top && blockRect.top <= finalCoords.top + finalCoords.height) {
-                            selectedBlocks.push(block.id)
-                        }
-
-                    })
-                    setSelected(selectedBlocks)
-                }}
-                style={{
-                    backgroundColor: "rgba(0,0,255,0.4)",
-                    borderColor: "blue"
-                }}
-            > */}
-
-            <EditorContext.Provider value={{ elements: elements, setElements: setElements, editor: editor }}>
-                <Slate editor={editor} value={initialValue}>
-                    <DragDropContext onDragEnd={onDragEnd}>
-                        <Droppable droppableId="ROOT-DROPPABLE">
-                            {(provided) => (
-                                <div ref={provided.innerRef} {...provided.droppableProps}>
-                                    <Editable
-                                        renderLeaf={Leaf}
-                                        style={{
-                                            width: "75%",
-                                        }}
-                                        renderElement={renderElements}
-                                        onKeyDown={(event) => {
-                                            for (const hotkey in HOTKEYS) {
-                                                if (
-                                                    isHotkey(hotkey, event as any) &&
-                                                    editor.selection
-                                                ) {
-                                                    event.preventDefault();
-                                                    const mark = HOTKEYS[hotkey];
-                                                    toggleMark(editor, mark);
+                                                        document.getElementById(`de-control-button-add-${block.id}`)?.dispatchEvent(new Event('open-popover'))
+                                                    }
                                                 }
+                                            }}
+                                        />
+                                        {provided.placeholder}
+                                    </div>
+                                )}
 
-                                                // check if slash is pressed and caret is at position 0
-                                                if (event.key === "/" && editor.selection && editor.selection.anchor.offset === 0) {
-                                                    event.preventDefault();
-                                                    const block = editor.children[
-                                                        editor.selection.anchor.path[0]
-                                                    ] as CustomElement;
-
-                                                    document.getElementById(`de-control-button-add-${block.id}`)?.dispatchEvent(new Event('open-popover'))
-                                                }
-                                            }
-                                        }}
-                                    />
-                                    {provided.placeholder}
-                                </div>
-                            )}
-
-                        </Droppable>
-                    </DragDropContext>
-                </Slate>
-            </EditorContext.Provider>
-            {/* </RectangleSelection> */}
+                            </Droppable>
+                        </DragDropContext>
+                    </Slate>
+                </EditorContext.Provider>
+            </div>
         </div>
     );
 };

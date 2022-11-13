@@ -22,6 +22,7 @@ importers:
       '@types/react-dom': ^18.0.7
       eslint: 7.32.0
       eslint-config-custom: workspace:*
+      nanoid: ^4.0.0
       next: 13.0.0
       react: 18.2.0
       react-dom: 18.2.0
@@ -29,6 +30,7 @@ importers:
       typescript: ^4.5.3
     dependencies:
       '@radix-ui/colors': 0.1.8
+      nanoid: 4.0.0
       next: 13.0.0_mqvh5p7ejg4taogoj6tpk3gd5a
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0

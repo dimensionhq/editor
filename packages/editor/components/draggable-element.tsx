@@ -1,6 +1,5 @@
 import { useContext } from "react";
-import { Draggable, Droppable } from "react-beautiful-dnd";
-import { initialValue } from "..";
+import { Draggable } from "react-beautiful-dnd";
 import BlockWrapper from "../blocks";
 import EditorContext from "../ctx";
 import { BlockType } from "../types";

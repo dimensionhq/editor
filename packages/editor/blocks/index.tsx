@@ -30,7 +30,7 @@ const BlockWrapper = (props: Props) => {
     }, [])
 
     return (
-        <div ref={ref} className="de-block" id={`${props.element.id}`} data-selected={selected} data-block={true}>
+        <div ref={ref} className="de-block de-itemSelector" data-id={`${props.element.id}`} id={`${props.element.id}`} data-selected={selected} data-block={true}>
             <div style={{ userSelect: "none" }}>
                 <BlockControls element={props.element} dragHandleProps={props.dragHandleProps} />
             </div>
